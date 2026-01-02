@@ -162,47 +162,37 @@ async def get_current_user(request: Request) -> User:
 
 # ==================== Authentication Routes ====================
 
-@api_router.post("/auth/session")
-async def create_session(request: Request, response: Response):
-    session_id = request.headers.get("X-Session-ID")
-    
-    if not session_id:
-        raise HTTPException(status_code=400, detail="Missing session ID")
-    
+class LoginRequest(BaseModel):
+    email: str
+    name: str
+
+@api_router.post("/auth/login")
+async def login(login_data: LoginRequest, response: Response):
+    """Simple login endpoint for local development"""
     try:
-        resp = requests.get(
-            "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
-            headers={"X-Session-ID": session_id},
-            timeout=10
-        )
-        
-        if resp.status_code != 200:
-            raise HTTPException(status_code=401, detail="Invalid session ID")
-        
-        data = resp.json()
-        session_token = data["session_token"]
-        
-        user_doc = await db.users.find_one({"email": data["email"]}, {"_id": 0})
+        # Check if user exists
+        user_doc = await db.users.find_one({"email": login_data.email}, {"_id": 0})
         
         if user_doc:
             user_id = user_doc["user_id"]
+            # Update user name if changed
             await db.users.update_one(
                 {"user_id": user_id},
-                {"$set": {
-                    "name": data["name"],
-                    "picture": data.get("picture")
-                }}
+                {"$set": {"name": login_data.name}}
             )
         else:
+            # Create new user
             user_id = f"user_{uuid.uuid4().hex[:12]}"
             await db.users.insert_one({
                 "user_id": user_id,
-                "email": data["email"],
-                "name": data["name"],
-                "picture": data.get("picture"),
+                "email": login_data.email,
+                "name": login_data.name,
+                "picture": None,
                 "created_at": datetime.now(timezone.utc)
             })
         
+        # Create session
+        session_token = f"session_{uuid.uuid4().hex}"
         await db.user_sessions.insert_one({
             "user_id": user_id,
             "session_token": session_token,
@@ -210,25 +200,26 @@ async def create_session(request: Request, response: Response):
             "created_at": datetime.now(timezone.utc)
         })
         
+        # Set cookie
         response.set_cookie(
             key="session_token",
             value=session_token,
             httponly=True,
-            secure=True,
-            samesite="none",
+            secure=False,  # Set to False for local development
+            samesite="lax",
             path="/",
             max_age=7 * 24 * 60 * 60
         )
         
         return {
             "user_id": user_id,
-            "email": data["email"],
-            "name": data["name"],
-            "picture": data.get("picture")
+            "email": login_data.email,
+            "name": login_data.name,
+            "picture": None
         }
     
-    except requests.RequestException as e:
-        raise HTTPException(status_code=500, detail=f"Authentication service error: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Login error: {str(e)}")
 
 @api_router.get("/auth/me")
 async def get_me(current_user: User = Depends(get_current_user)):
