@@ -31,7 +31,7 @@ function ProtectedRoute({ children }) {
     };
 
     checkAuth();
-  }, [location.state, navigate]);
+  }, []);
 
   if (isAuthenticated === null) {
     return (
