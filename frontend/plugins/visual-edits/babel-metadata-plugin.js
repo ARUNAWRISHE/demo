@@ -930,7 +930,7 @@ const babelMetadataPlugin = ({ types: t }) => {
           });
         })();
 
-        // 🚫 If this element is a direct child of a Trigger/asChild/Slot,
+        // If this element is a direct child of a Trigger/asChild/Slot,
         // or itself a primitive/root, DO NOT WRAP — stamp x-* on the element itself
         // and mark it with x-excluded="true".
         if (
@@ -969,7 +969,7 @@ const babelMetadataPlugin = ({ types: t }) => {
           return;
         }
 
-        // ✅ Normal case: add metadata attributes directly
+        // Normal case: add metadata attributes directly
         pushMetaAttrs(
           openingElement,
           { normalizedPath, lineNumber, elementName, isDynamic },

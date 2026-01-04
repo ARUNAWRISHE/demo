@@ -11,35 +11,35 @@ function Dashboard({ user }) {
     {
       title: "Manage Departments",
       description: "Add, edit, or remove departments",
-      icon: "🏢",
+      icon: "",
       path: "/departments",
       color: "bg-blue-50 hover:bg-blue-100",
     },
     {
       title: "Manage Staff",
       description: "Add staff members and assign departments",
-      icon: "👥",
+      icon: "",
       path: "/staff",
       color: "bg-green-50 hover:bg-green-100",
     },
     {
       title: "Manage Subjects",
       description: "Configure subjects and courses",
-      icon: "📚",
+      icon: "",
       path: "/subjects",
       color: "bg-purple-50 hover:bg-purple-100",
     },
     {
       title: "Create Timetable",
       description: "Build and manage timetables",
-      icon: "⚙️",
+      icon: "",
       path: "/timetable-manager",
       color: "bg-orange-50 hover:bg-orange-100",
     },
     {
       title: "View Timetable",
       description: "View existing timetables",
-      icon: "📅",
+      icon: "",
       path: "/timetable-view",
       color: "bg-pink-50 hover:bg-pink-100",
     },
@@ -64,7 +64,6 @@ function Dashboard({ user }) {
               data-testid={`quick-action-${action.title.toLowerCase().replace(/ /g, '-')}`}
             >
               <CardHeader>
-                <div className="text-4xl mb-2">{action.icon}</div>
                 <CardTitle className="text-xl">{action.title}</CardTitle>
                 <CardDescription className="text-base">{action.description}</CardDescription>
               </CardHeader>

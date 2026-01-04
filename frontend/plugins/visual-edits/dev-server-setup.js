@@ -5,7 +5,7 @@ const path = require("path");
 const express = require("express");
 const { execSync } = require("child_process");
 
-// 🔍 Read Supervisor code-server password from conf.d
+// Read Supervisor code-server password from conf.d
 function getCodeServerPassword() {
   try {
     const conf = fs.readFileSync(
@@ -56,12 +56,12 @@ function setupDevServer(config) {
       return false;
     };
 
-    // ✅ Health check (no auth)
+    // Health check (no auth)
     devServer.app.get("/ping", (req, res) => {
       res.json({ status: "ok", time: new Date().toISOString() });
     });
 
-    // ✅ Protected file editing endpoint with AST processing
+    // Protected file editing endpoint with AST processing
     devServer.app.post("/edit-file", (req, res) => {
       // Validate and set CORS headers
       const origin = req.get("Origin");
@@ -70,7 +70,7 @@ function setupDevServer(config) {
         res.header("Access-Control-Allow-Headers", "Content-Type, x-api-key");
       }
 
-      // 🔑 Check header against Supervisor password
+      // Check header against Supervisor password
       const key = req.get("x-api-key");
       if (!SUP_PASS || key !== SUP_PASS) {
         return res.status(401).json({ error: "Unauthorized" });

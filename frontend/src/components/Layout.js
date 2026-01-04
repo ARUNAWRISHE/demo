@@ -26,12 +26,12 @@ function Layout({ children, user }) {
   };
 
   const navItems = [
-    { path: "/", label: "Dashboard", icon: "📊" },
-    { path: "/departments", label: "Departments", icon: "🏢" },
-    { path: "/staff", label: "Staff", icon: "👥" },
-    { path: "/subjects", label: "Subjects", icon: "📚" },
-    { path: "/timetable-manager", label: "Manage Timetable", icon: "⚙️" },
-    { path: "/timetable-view", label: "View Timetable", icon: "📅" },
+    { path: "/", label: "Dashboard", icon: "" },
+    { path: "/departments", label: "Departments", icon: "" },
+    { path: "/staff", label: "Staff", icon: "" },
+    { path: "/subjects", label: "Subjects", icon: "" },
+    { path: "/timetable-manager", label: "Manage Timetable", icon: "" },
+    { path: "/timetable-view", label: "View Timetable", icon: "" },
   ];
 
   return (
@@ -57,7 +57,6 @@ function Layout({ children, user }) {
                   data-testid={`nav-${item.label.toLowerCase().replace(/ /g, '-')}`}
                   className="text-sm"
                 >
-                  <span className="mr-1.5">{item.icon}</span>
                   {item.label}
                 </Button>
               ))}

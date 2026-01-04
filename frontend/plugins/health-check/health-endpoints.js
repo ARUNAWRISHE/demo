@@ -165,7 +165,7 @@ function setupHealthEndpoints(devServer, healthPlugin) {
     });
   });
 
-  console.log('[Health Check] ✓ Health endpoints ready:');
+  console.log('[Health Check] Health endpoints ready:');
   console.log('  • GET /health         - Detailed status');
   console.log('  • GET /health/simple  - Simple OK/ERROR');
   console.log('  • GET /health/ready   - Readiness check');
