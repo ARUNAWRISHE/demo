@@ -98,7 +98,7 @@ function TimetableManager({ user }) {
       <div className="space-y-6" data-testid="timetable-manager-page">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Timetable Manager</h1>
+            <h1 className="text-3xl font-bold text-foreground">Timing Investigator</h1>
             <p className="text-muted-foreground mt-1">Create and manage timetable entries</p>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

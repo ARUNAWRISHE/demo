@@ -10,7 +10,7 @@ import Classes from "@/pages/Classes";
 import TimeSlots from "@/pages/TimeSlots";
 import TimetableManager from "@/pages/TimetableManager";
 import TimetableView from "@/pages/TimetableView";
-import AuthCallback from "@/pages/AuthCallback";
+import RoleHome from "@/pages/RoleHome";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Toaster } from "@/components/ui/sonner";
 import "@/App.css";
@@ -19,15 +19,10 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
 
 function AppRouter() {
-  const location = useLocation();
-  
-  if (location.hash?.includes('session_id=')) {
-    return <AuthCallback />;
-  }
-  
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/role-home" element={<RoleHome />} />
       <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/departments" element={<ProtectedRoute><Departments /></ProtectedRoute>} />
       <Route path="/staff" element={<ProtectedRoute><Staff /></ProtectedRoute>} />

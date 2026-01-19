@@ -302,7 +302,7 @@ function TimetableView({ user }) {
 
             {timetableEntries.length === 0 && !loading && (
               <div className="text-center py-8 text-muted-foreground">
-                No timetable entries found for the selected filters. Create entries in the Timetable Manager.
+                No timetable entries found for the selected filters. Create entries in the Timing Investigator.
               </div>
             )}
           </CardContent>
