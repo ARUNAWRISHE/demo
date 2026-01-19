@@ -6,6 +6,8 @@ import Dashboard from "@/pages/Dashboard";
 import Departments from "@/pages/Departments";
 import Staff from "@/pages/Staff";
 import Subjects from "@/pages/Subjects";
+import Classes from "@/pages/Classes";
+import TimeSlots from "@/pages/TimeSlots";
 import TimetableManager from "@/pages/TimetableManager";
 import TimetableView from "@/pages/TimetableView";
 import AuthCallback from "@/pages/AuthCallback";
@@ -30,6 +32,8 @@ function AppRouter() {
       <Route path="/departments" element={<ProtectedRoute><Departments /></ProtectedRoute>} />
       <Route path="/staff" element={<ProtectedRoute><Staff /></ProtectedRoute>} />
       <Route path="/subjects" element={<ProtectedRoute><Subjects /></ProtectedRoute>} />
+      <Route path="/classes" element={<ProtectedRoute><Classes /></ProtectedRoute>} />
+      <Route path="/time-slots" element={<ProtectedRoute><TimeSlots /></ProtectedRoute>} />
       <Route path="/timetable-manager" element={<ProtectedRoute><TimetableManager /></ProtectedRoute>} />
       <Route path="/timetable-view" element={<ProtectedRoute><TimetableView /></ProtectedRoute>} />
     </Routes>

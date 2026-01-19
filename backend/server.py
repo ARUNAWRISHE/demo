@@ -88,9 +88,31 @@ class SubjectCreate(BaseModel):
     department_id: str
     subject_type: Optional[str] = "REGULAR"
 
+class Class(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    class_id: str = Field(default_factory=lambda: f"class_{uuid.uuid4().hex[:12]}")
+    name: str
+    department_id: str
+    description: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class ClassCreate(BaseModel):
+    name: str
+    department_id: str
+    description: Optional[str] = None
+
 class TimeSlot(BaseModel):
     model_config = ConfigDict(extra="ignore")
     slot_id: str = Field(default_factory=lambda: f"slot_{uuid.uuid4().hex[:12]}")
+    start_time: str
+    end_time: str
+    period_number: int
+    slot_type: str = "CLASS"
+
+class TimeSlotCreate(BaseModel):
+    start_time: str
+    end_time: str
+class TimeSlotCreate(BaseModel):
     start_time: str
     end_time: str
     period_number: int
@@ -101,26 +123,32 @@ class TimetableEntry(BaseModel):
     entry_id: str = Field(default_factory=lambda: f"entry_{uuid.uuid4().hex[:12]}")
     academic_year: str
     program: str
-    year_semester: str
+    year: int  # Year: 1-5
+    semester: str  # Semester: I-VIII
     section: str
     day_of_week: str
     slot_id: str
     subject_id: Optional[str] = None
     staff_id: Optional[str] = None
-    classroom: Optional[str] = None
+    class_id: Optional[str] = None
+    department_id: Optional[str] = None
+    remarks: Optional[str] = None
     entry_type: str = "CLASS"
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class TimetableEntryCreate(BaseModel):
     academic_year: str
     program: str
-    year_semester: str
+    year: int  # Year: 1-5
+    semester: str  # Semester: I-VIII
     section: str
     day_of_week: str
     slot_id: str
     subject_id: Optional[str] = None
     staff_id: Optional[str] = None
-    classroom: Optional[str] = None
+    class_id: Optional[str] = None
+    department_id: Optional[str] = None
+    remarks: Optional[str] = None
     entry_type: str = "CLASS"
 
 # ==================== Authentication Helper ====================
@@ -312,6 +340,32 @@ async def delete_subject(subject_id: str, current_user: User = Depends(get_curre
         raise HTTPException(status_code=404, detail="Subject not found")
     return {"message": "Subject deleted successfully"}
 
+# ==================== Classes Routes ====================
+
+@api_router.post("/classes", response_model=Class)
+async def create_class(cls: ClassCreate, current_user: User = Depends(get_current_user)):
+    class_obj = Class(**cls.model_dump())
+    doc = class_obj.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    await db.classes.insert_one(doc)
+    return class_obj
+
+@api_router.get("/classes", response_model=List[Class])
+async def get_classes(department_id: Optional[str] = None, current_user: User = Depends(get_current_user)):
+    query = {"department_id": department_id} if department_id else {}
+    classes = await db.classes.find(query, {"_id": 0}).to_list(1000)
+    for cls in classes:
+        if isinstance(cls['created_at'], str):
+            cls['created_at'] = datetime.fromisoformat(cls['created_at'])
+    return classes
+
+@api_router.delete("/classes/{class_id}")
+async def delete_class(class_id: str, current_user: User = Depends(get_current_user)):
+    result = await db.classes.delete_one({"class_id": class_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Class not found")
+    return {"message": "Class deleted successfully"}
+
 # ==================== Time Slots Routes ====================
 
 @api_router.get("/time-slots", response_model=List[TimeSlot])
@@ -334,6 +388,20 @@ async def get_time_slots(current_user: User = Depends(get_current_user)):
     
     return slots
 
+@api_router.post("/time-slots", response_model=TimeSlot)
+async def create_time_slot(slot: TimeSlotCreate, current_user: User = Depends(get_current_user)):
+    slot_obj = TimeSlot(**slot.model_dump())
+    doc = slot_obj.model_dump()
+    await db.time_slots.insert_one(doc)
+    return slot_obj
+
+@api_router.delete("/time-slots/{slot_id}")
+async def delete_time_slot(slot_id: str, current_user: User = Depends(get_current_user)):
+    result = await db.time_slots.delete_one({"slot_id": slot_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Time slot not found")
+    return {"message": "Time slot deleted successfully"}
+
 # ==================== Timetable Routes ====================
 
 @api_router.post("/timetable", response_model=TimetableEntry)
@@ -348,8 +416,10 @@ async def create_timetable_entry(entry: TimetableEntryCreate, current_user: User
 async def get_timetable(
     academic_year: Optional[str] = None,
     program: Optional[str] = None,
-    year_semester: Optional[str] = None,
+    year: Optional[int] = None,
+    semester: Optional[str] = None,
     section: Optional[str] = None,
+    class_id: Optional[str] = None,
     current_user: User = Depends(get_current_user)
 ):
     query = {}
@@ -357,8 +427,21 @@ async def get_timetable(
         query["academic_year"] = academic_year
     if program:
         query["program"] = program
-    if year_semester:
-        query["year_semester"] = year_semester
+    if year:
+        query["year"] = year
+    if semester:
+        query["semester"] = semester
+    if section:
+        query["section"] = section
+    if class_id:
+        query["class_id"] = class_id
+        query["academic_year"] = academic_year
+    if program:
+        query["program"] = program
+    if year:
+        query["year"] = year
+    if semester:
+        query["semester"] = semester
     if section:
         query["section"] = section
     

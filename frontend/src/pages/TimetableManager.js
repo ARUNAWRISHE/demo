@@ -18,23 +18,30 @@ import {
 } from "@/components/ui/dialog";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const YEARS = [1, 2, 3, 4, 5];
+const SEMESTERS = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"];
 
 function TimetableManager({ user }) {
   const [slots, setSlots] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [staff, setStaff] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     academic_year: "2025-2026",
     program: "B.Tech",
-    year_semester: "I",
+    year: 1,
+    semester: "I",
     section: "A",
     day_of_week: "Monday",
     slot_id: "",
     subject_id: "",
     staff_id: "",
-    classroom: "",
+    class_id: "",
+    department_id: "",
+    remarks: "",
     entry_type: "CLASS",
   });
 
@@ -44,14 +51,18 @@ function TimetableManager({ user }) {
 
   const fetchData = async () => {
     try {
-      const [slotsRes, subjectsRes, staffRes] = await Promise.all([
+      const [slotsRes, subjectsRes, staffRes, classesRes, departmentsRes] = await Promise.all([
         axios.get(`${API}/time-slots`, { withCredentials: true }),
         axios.get(`${API}/subjects`, { withCredentials: true }),
         axios.get(`${API}/staff`, { withCredentials: true }),
+        axios.get(`${API}/classes`, { withCredentials: true }),
+        axios.get(`${API}/departments`, { withCredentials: true }),
       ]);
       setSlots(slotsRes.data);
       setSubjects(subjectsRes.data);
       setStaff(staffRes.data);
+      setClasses(classesRes.data);
+      setDepartments(departmentsRes.data);
     } catch (error) {
       console.error("Error fetching data:", error);
       toast.error("Failed to load data");
@@ -132,34 +143,53 @@ function TimetableManager({ user }) {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="year_semester">Year/Semester</Label>
+                    <Label htmlFor="year">Year</Label>
                     <Select
-                      value={formData.year_semester}
-                      onValueChange={(value) => setFormData({ ...formData, year_semester: value })}
+                      value={formData.year.toString()}
+                      onValueChange={(value) => setFormData({ ...formData, year: parseInt(value) })}
                     >
-                      <SelectTrigger data-testid="year-semester-select">
+                      <SelectTrigger data-testid="year-select">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {["I", "II", "III", "IV"].map((yr) => (
-                          <SelectItem key={yr} value={yr}>
-                            {yr}
+                        {YEARS.map((yr) => (
+                          <SelectItem key={yr} value={yr.toString()}>
+                            Year {yr}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="section">Section</Label>
-                    <Input
-                      id="section"
-                      data-testid="section-input"
-                      value={formData.section}
-                      onChange={(e) => setFormData({ ...formData, section: e.target.value })}
-                      placeholder="A"
-                      required
-                    />
+                    <Label htmlFor="semester">Semester</Label>
+                    <Select
+                      value={formData.semester}
+                      onValueChange={(value) => setFormData({ ...formData, semester: value })}
+                    >
+                      <SelectTrigger data-testid="semester-select">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SEMESTERS.map((sem) => (
+                          <SelectItem key={sem} value={sem}>
+                            Semester {sem}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="section">Section</Label>
+                  <Input
+                    id="section"
+                    data-testid="section-input"
+                    value={formData.section}
+                    onChange={(e) => setFormData({ ...formData, section: e.target.value })}
+                    placeholder="A"
+                    required
+                  />
                 </div>
 
                 <div>
@@ -239,13 +269,51 @@ function TimetableManager({ user }) {
                 </div>
 
                 <div>
-                  <Label htmlFor="classroom">Classroom</Label>
+                  <Label htmlFor="department">Department</Label>
+                  <Select
+                    value={formData.department_id}
+                    onValueChange={(value) => setFormData({ ...formData, department_id: value })}
+                  >
+                    <SelectTrigger data-testid="department-select">
+                      <SelectValue placeholder="Select department" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {departments.map((dept) => (
+                        <SelectItem key={dept.department_id} value={dept.department_id}>
+                          {dept.name} ({dept.code})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="class">Class</Label>
+                  <Select
+                    value={formData.class_id}
+                    onValueChange={(value) => setFormData({ ...formData, class_id: value })}
+                  >
+                    <SelectTrigger data-testid="class-select">
+                      <SelectValue placeholder="Select class" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {classes.map((cls) => (
+                        <SelectItem key={cls.class_id} value={cls.class_id}>
+                          {cls.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="remarks">Remarks (Optional)</Label>
                   <Input
-                    id="classroom"
-                    data-testid="classroom-input"
-                    value={formData.classroom}
-                    onChange={(e) => setFormData({ ...formData, classroom: e.target.value })}
-                    placeholder="e.g., Room 101"
+                    id="remarks"
+                    data-testid="remarks-input"
+                    value={formData.remarks}
+                    onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
+                    placeholder="Any additional notes"
                   />
                 </div>
 
@@ -267,9 +335,9 @@ function TimetableManager({ user }) {
               <ol className="list-decimal list-inside space-y-2 ml-2">
                 <li>Ensure you have added all departments, staff, and subjects</li>
                 <li>Click "Add Entry" to create individual timetable entries</li>
-                <li>Fill in the academic year, program, year/semester, and section</li>
-                <li>Select the day and time slot for the entry</li>
-                <li>Assign the subject, staff member, and classroom</li>
+                <li>Fill in the academic year, program, year (1-5), and semester (I-VIII)</li>
+                <li>Select the section, day, and time slot for the entry</li>
+                <li>Assign the subject, staff member, classroom, and any remarks</li>
                 <li>Repeat for all periods across all days</li>
                 <li>View the complete timetable in the "View Timetable" section</li>
               </ol>

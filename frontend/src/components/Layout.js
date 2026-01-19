@@ -30,6 +30,8 @@ function Layout({ children, user }) {
     { path: "/departments", label: "Departments", icon: "" },
     { path: "/staff", label: "Staff", icon: "" },
     { path: "/subjects", label: "Subjects", icon: "" },
+    { path: "/classes", label: "Classes", icon: "" },
+    { path: "/time-slots", label: "Time Slots", icon: "" },
     { path: "/timetable-manager", label: "Manage Timetable", icon: "" },
     { path: "/timetable-view", label: "View Timetable", icon: "" },
   ];

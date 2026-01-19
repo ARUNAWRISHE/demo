@@ -10,18 +10,24 @@ import axios from "axios";
 import { toast } from "sonner";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const YEARS = [1, 2, 3, 4, 5];
+const SEMESTERS = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"];
 
 function TimetableView({ user }) {
   const [timetableEntries, setTimetableEntries] = useState([]);
   const [slots, setSlots] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [staff, setStaff] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     academic_year: "2025-2026",
     program: "B.Tech",
-    year_semester: "I",
+    year: 1,
+    semester: "I",
     section: "A",
+    class_id: "",
   });
 
   useEffect(() => {
@@ -34,14 +40,18 @@ function TimetableView({ user }) {
 
   const fetchData = async () => {
     try {
-      const [slotsRes, subjectsRes, staffRes] = await Promise.all([
+      const [slotsRes, subjectsRes, staffRes, classesRes, departmentsRes] = await Promise.all([
         axios.get(`${API}/time-slots`, { withCredentials: true }),
         axios.get(`${API}/subjects`, { withCredentials: true }),
         axios.get(`${API}/staff`, { withCredentials: true }),
+        axios.get(`${API}/classes`, { withCredentials: true }),
+        axios.get(`${API}/departments`, { withCredentials: true }),
       ]);
       setSlots(slotsRes.data);
       setSubjects(subjectsRes.data);
       setStaff(staffRes.data);
+      setClasses(classesRes.data);
+      setDepartments(departmentsRes.data);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -79,6 +89,18 @@ function TimetableView({ user }) {
     if (!id) return "-";
     const member = staff.find((s) => s.staff_id === id);
     return member ? member.name.split(' ').slice(0, 2).join(' ') : "-";
+  };
+
+  const getClassName = (id) => {
+    if (!id) return "-";
+    const cls = classes.find((c) => c.class_id === id);
+    return cls ? cls.name : "-";
+  };
+
+  const getDepartmentName = (id) => {
+    if (!id) return "-";
+    const dept = departments.find((d) => d.department_id === id);
+    return dept ? dept.name : "-";
   };
 
   const handleDeleteEntry = async (entryId) => {
@@ -131,18 +153,36 @@ function TimetableView({ user }) {
                 />
               </div>
               <div>
-                <Label htmlFor="filter_semester">Year/Semester</Label>
+                <Label htmlFor="filter_year">Year</Label>
                 <Select
-                  value={filters.year_semester}
-                  onValueChange={(value) => setFilters({ ...filters, year_semester: value })}
+                  value={filters.year.toString()}
+                  onValueChange={(value) => setFilters({ ...filters, year: parseInt(value) })}
                 >
-                  <SelectTrigger data-testid="filter-year-semester">
+                  <SelectTrigger data-testid="filter-year">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {["I", "II", "III", "IV"].map((yr) => (
-                      <SelectItem key={yr} value={yr}>
-                        {yr}
+                    {YEARS.map((yr) => (
+                      <SelectItem key={yr} value={yr.toString()}>
+                        Year {yr}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="filter_semester">Semester</Label>
+                <Select
+                  value={filters.semester}
+                  onValueChange={(value) => setFilters({ ...filters, semester: value })}
+                >
+                  <SelectTrigger data-testid="filter-semester">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SEMESTERS.map((sem) => (
+                      <SelectItem key={sem} value={sem}>
+                        Semester {sem}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -158,6 +198,25 @@ function TimetableView({ user }) {
                   placeholder="A"
                 />
               </div>
+              <div>
+                <Label htmlFor="filter_class">Class (Optional)</Label>
+                <Select
+                  value={filters.class_id}
+                  onValueChange={(value) => setFilters({ ...filters, class_id: value })}
+                >
+                  <SelectTrigger data-testid="filter-class">
+                    <SelectValue placeholder="All classes" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All classes</SelectItem>
+                    {classes.map((cls) => (
+                      <SelectItem key={cls.class_id} value={cls.class_id}>
+                        {cls.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -165,7 +224,7 @@ function TimetableView({ user }) {
         <Card>
           <CardHeader>
             <CardTitle>
-              Timetable for {filters.program} - Year {filters.year_semester}, Section {filters.section}
+              Timetable for {filters.program} - Year {filters.year}, Semester {filters.semester}, Section {filters.section}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -198,16 +257,26 @@ function TimetableView({ user }) {
                           return (
                             <td key={slot.slot_id} className="border border-border p-2 text-center align-top">
                               {entry ? (
-                                <div className="bg-blue-50 p-2 rounded space-y-1 min-h-[80px] relative group">
-                                  <div className="font-medium text-sm text-primary">
+                                <div className="bg-blue-50 p-2 rounded space-y-1 min-h-[100px] relative group">
+                                  <div className="font-semibold text-sm text-primary">
                                     {getSubjectName(entry.subject_id)}
                                   </div>
-                                  <div className="text-xs text-muted-foreground">
+                                  <div className="text-xs text-muted-foreground font-medium">
                                     {getStaffName(entry.staff_id)}
                                   </div>
-                                  {entry.classroom && (
+                                  {entry.department_id && (
                                     <div className="text-xs text-muted-foreground">
-                                      {entry.classroom}
+                                      Dept: {getDepartmentName(entry.department_id)}
+                                    </div>
+                                  )}
+                                  {entry.class_id && (
+                                    <div className="text-xs text-muted-foreground">
+                                      Class: {getClassName(entry.class_id)}
+                                    </div>
+                                  )}
+                                  {entry.remarks && (
+                                    <div className="text-xs text-muted-foreground italic">
+                                      {entry.remarks}
                                     </div>
                                   )}
                                   <button
