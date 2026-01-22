@@ -1,9 +1,9 @@
 import React from "react";
-import { useLocation, Navigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 function ProtectedRoute({ children }) {
-  const location = useLocation();
-  const user = location.state?.user;
+  const { user } = useAuth();
 
   // If no user in state, redirect to login
   if (!user) {
@@ -12,7 +12,7 @@ function ProtectedRoute({ children }) {
 
   // Check if user is admin
   if (user.role !== "admin") {
-    return <Navigate to="/role-home" state={{ user }} replace />;
+    return <Navigate to="/role-home" replace />;
   }
 
   return React.cloneElement(children, { user });

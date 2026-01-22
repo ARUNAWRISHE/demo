@@ -6,6 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import axios from "axios";
+import { API } from "@/App";
 
 const VALID_PASSWORD = "admin@123";
 const ROLES = [
@@ -18,10 +21,11 @@ const ROLES = [
 
 function Login() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({ role: "", password: "" });
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!formData.role || !formData.password) {
@@ -37,17 +41,33 @@ function Login() {
       return;
     }
 
-    toast.success("Login successful!");
-    
-    const user = { role: formData.role, name: formData.role.toUpperCase() };
-    
-    if (formData.role === "admin") {
-      navigate("/", { state: { user }, replace: true });
-    } else {
-      navigate("/role-home", { state: { user }, replace: true });
+    try {
+      // Call backend login endpoint
+      const response = await axios.post(
+        `${API}/auth/login`,
+        {
+          email: `${formData.role}@example.com`,
+          name: formData.role.toUpperCase(),
+        },
+        { withCredentials: true }
+      );
+
+      toast.success("Login successful!");
+      
+      const user = { role: formData.role, name: formData.role.toUpperCase(), email: `${formData.role}@example.com` };
+      login(user);
+      
+      if (formData.role === "admin") {
+        navigate("/", { replace: true });
+      } else {
+        navigate("/role-home", { replace: true });
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      toast.error("Login failed. Please try again.");
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   return (

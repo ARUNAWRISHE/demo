@@ -1,9 +1,8 @@
 import React from "react";
-import { useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 function RoleHome() {
-  const location = useLocation();
-  const user = location.state?.user;
+  const { user } = useAuth();
 
   return (
     <div className="min-h-screen bg-white">

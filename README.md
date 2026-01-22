@@ -1,6 +1,6 @@
-# Timetable Management System
+# Timing Investigator
 
-A full-stack web application for managing academic timetables, departments, staff, and subjects.
+A full-stack video timing investigation tool where admins set up departments, staff, classes, and time slots, staff upload evidence videos, and leaders track the outputs returned from the analysis service.
 
 ## Tech Stack
 
@@ -82,12 +82,20 @@ REACT_APP_BACKEND_URL=http://localhost:8000
 
 ## Features
 
-- User authentication with session management
-- Department management (CRUD operations)
-- Staff management
-- Subject management
-- Timetable creation and viewing
-- Time slot configuration
+- Role-based access: admin, staff, HOD, AO, director (single shared password for now)
+- Admin: configure departments, classes, staff, time slots, and build the timetable grid
+- Staff: upload timing investigation videos to the external analysis service
+- HOD/AO/Director: track uploaded videos and review returned analysis outputs
+- Frontend: React UI with protected flows per role
+- Backend/API: FastAPI with MongoDB for structured data (departments, staff, classes, time slots, timetables, uploads)
+
+## Roles and workflow
+
+- **Admin**: creates departments, classes, staff, time slots, and assembles the timetable framework the investigations align to.
+- **Staff**: records and uploads the required timing evidence videos; each upload is forwarded to the configured analysis website.
+- **HOD / AO / Director**: monitor the uploads and the analysis results coming back from the website; no editing of timetable data.
+
+Auth note: current login uses a role picker with the shared password `admin@123` (admin routes stay behind admin-only checks).
 
 ## API Endpoints
 

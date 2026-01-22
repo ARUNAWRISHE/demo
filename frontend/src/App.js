@@ -12,6 +12,7 @@ import TimetableManager from "@/pages/TimetableManager";
 import TimetableView from "@/pages/TimetableView";
 import RoleHome from "@/pages/RoleHome";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { Toaster } from "@/components/ui/sonner";
 import "@/App.css";
 
@@ -39,8 +40,10 @@ function App() {
   return (
     <div className="App">
       <BrowserRouter>
-        <AppRouter />
-        <Toaster position="top-center" richColors />
+        <AuthProvider>
+          <AppRouter />
+          <Toaster position="top-center" richColors />
+        </AuthProvider>
       </BrowserRouter>
     </div>
   );
